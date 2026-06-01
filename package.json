@@ -1,0 +1,29 @@
+{
+  "name": "job-application-tracker",
+  "version": "1.0.0",
+  "private": false,
+  "type": "module",
+  "bin": {
+    "job-application-tracker": "./bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "server",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:package": "npm run build && npm pack",
+    "preview": "vite preview",
+    "start": "node server/server.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "vite": "^5.4.21",
+    "vue": "^3.5.25"
+  }
+}

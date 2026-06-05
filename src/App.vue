@@ -54,7 +54,7 @@
           <h2 id="listTitle">投递列表</h2>
         </div>
         <div class="toolbar">
-          <input v-model.trim="searchKeyword" type="search" placeholder="搜索公司或职位" aria-label="搜索公司或职位" />
+          <input :value="searchKeyword" type="search" placeholder="搜索公司或职位" aria-label="搜索公司或职位" @input="updateSearchKeyword" />
           <select v-model="statusFilter" aria-label="按状态筛选">
             <option value="全部">全部状态</option>
             <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
@@ -116,32 +116,32 @@
           <button class="icon-button" type="button" :aria-label="`关闭${dialogTitle}弹窗`" @click="closeDialog">×</button>
         </div>
 
-        <form class="application-form dialog-form" @submit.prevent="submitDialog">
+        <form ref="dialogFormElement" class="application-form dialog-form" @submit.prevent="submitDialog">
           <label>
             <span>投递时间</span>
-            <input v-model="dialogForm.appliedAt" type="date" />
+            <input name="appliedAt" :value="dialogForm.appliedAt" type="date" />
           </label>
           <label>
             <span>公司名</span>
-            <input v-model.trim="dialogForm.company" type="text" />
+            <input name="company" :value="dialogForm.company" type="text" />
           </label>
           <label>
             <span>投递职位</span>
-            <input v-model.trim="dialogForm.position" type="text" />
+            <input name="position" :value="dialogForm.position" type="text" />
           </label>
           <label>
             <span>详情链接</span>
-            <input v-model.trim="dialogForm.detailUrl" type="text" />
+            <input name="detailUrl" :value="dialogForm.detailUrl" type="text" />
           </label>
           <label>
             <span>投递状态</span>
-            <select v-model="dialogForm.status">
+            <select name="status" :value="dialogForm.status">
               <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
             </select>
           </label>
           <label class="full-width">
             <span>备注</span>
-            <textarea v-model.trim="dialogForm.notes" rows="4"></textarea>
+            <textarea name="notes" :value="dialogForm.notes" rows="4"></textarea>
           </label>
           <div class="dialog-actions full-width">
             <button class="ghost-button" type="button" @click="closeDialog">取消</button>
@@ -210,6 +210,8 @@ const editingApplicationId = ref("");
 const isDialogOpen = ref(false);
 const expandedStatusGroups = ref([]);
 const importFileInput = ref(null);
+const dialogFormElement = ref(null);
+let searchTimer = 0;
 
 const filteredApplications = computed(() => {
   const keyword = searchKeyword.value.toLowerCase();
@@ -341,6 +343,14 @@ function exportApplications() {
   URL.revokeObjectURL(url);
 }
 
+function updateSearchKeyword(event) {
+  window.clearTimeout(searchTimer);
+  const keyword = event.target.value.trim();
+  searchTimer = window.setTimeout(() => {
+    searchKeyword.value = keyword;
+  }, 180);
+}
+
 function isGroupExpanded(groupKey) {
   return expandedStatusGroups.value.includes(groupKey);
 }
@@ -391,6 +401,16 @@ function closeDialog() {
 }
 
 function submitDialog() {
+  const formData = new FormData(dialogFormElement.value);
+  Object.assign(dialogForm, {
+    appliedAt: formData.get("appliedAt") || "",
+    company: String(formData.get("company") || "").trim(),
+    position: String(formData.get("position") || "").trim(),
+    detailUrl: String(formData.get("detailUrl") || "").trim(),
+    status: formData.get("status") || statusOptions[0],
+    notes: String(formData.get("notes") || "").trim(),
+  });
+
   if (dialogMode.value === "add") {
     addApplication();
     return;
